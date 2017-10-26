@@ -7,8 +7,6 @@ var async = require('async');
 var moment = require('moment');
 var uploadFileToDestination = Promise.promisify(require(`${global.app}/helpers/assets/uploadFileToDestination`));
 var unzipFileToDestination = Promise.promisify(require(`${global.app}/helpers/assets/unzipFileToDestination`));
-var removeFolder = require(`${global.app}/helpers/utils/removeFolder`);
-var removeCourseAndTracking = require(`${global.app}/helpers/courses/removeCourseAndTracking`);
 var setUpdatedOnModel = require(`${global.app}/helpers/utils/setUpdatedOnModel`);
 var errorResponses = require(`${global.app}/helpers/utils/errorResponses`);
 var getImsManifestDetails = require('./helpers/getImsManifestDetails');
@@ -89,8 +87,28 @@ module.exports = {
             return;
         }
 
-        var trackingModel = yield Tracking.findOne({_user: req.userId, _course: courseId});
         var userModel = yield User.findById(userId);
+        
+        if (userModel._role != 'learner') {
+            var trackingData = {
+                _user: userId,
+                _course: courseId,
+                _hasStarted: true,
+                _createdAt: currentTime,
+                _sessions: [{
+                    "_updatedAt": currentTime,
+                    "_createdAt": currentTime,
+                    "_isComplete": false,
+                    "_progress": 0
+                }],
+                _courseData: getDefaultScormAttributes(userModel)
+            }
+            socket.emit('server/scormModel', {_tracking: trackingData});
+            return;
+        }
+
+        var trackingModel = yield Tracking.findOne({_user: req.userId, _course: courseId});
+
         var averageTime = 0;
 
         if (!trackingModel) {
@@ -129,6 +147,10 @@ module.exports = {
             var courseId = req.params.courseId;
             var trackingModel = req.body;
 
+            if (req.user._role != 'learner') {
+                return callback(null, {_tracking: trackingModel});
+            }
+
             var updatedScormTracking = updateScormTracking(userId, courseId, trackingModel);
 
             var trackingModel = yield Tracking.findOneAndUpdate({_user: userId, _course: courseId}, updatedScormTracking, {new: true});
@@ -150,6 +172,10 @@ module.exports = {
             var userId = req.params.userId;
             var courseId = req.params.courseId;
             var trackingModel = req.body;
+
+            if (req.user._role != 'learner') {
+                return callback(null, {_tracking: trackingModel});
+            }
 
             var updatedScormTracking = updateScormTracking(userId, courseId, trackingModel, true);
 
