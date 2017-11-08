@@ -2,6 +2,7 @@ var Promise = require('bluebird');
 var Course = require(`${global.app}/models/course`);
 var Courses = require(`${global.app}/controllers/courses`);
 var Tracking = require(`${global.app}/models/tracking`);
+var Settings = require(`${global.app}/models/settings`);
 var User = require(`${global.app}/models/user`);
 var async = require('async');
 var moment = require('moment');
@@ -80,8 +81,15 @@ module.exports = {
         
         var userId = req.userId;
         var courseId = req.courseId;
+
+        var settings = yield Settings.findOne({});
+
+        var query = { _id: courseId };
+        if (settings._general._shouldUseUrlSlugs) {
+            query = { _urlSlug: courseId };
+        }
         
-        var courseModel = yield Course.findById(courseId);
+        var courseModel = yield Course.findOne(query);
         
         if (courseModel._courseType != 'scorm') {
             return;
