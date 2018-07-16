@@ -34,9 +34,13 @@ module.exports = {
                 _hasCourse: true
             }
 
+            Sockets.io.emit('courses:evolveCourseUploadUpdate', {_step: "1/3", _course: course, _progress: null});
             yield uploadFileToDestination(uploadFilePath, uploadDestinationPath);
-
-            yield unzipFileToDestination(uploadDestinationPath, unzippedDestinationPath);
+            Sockets.io.emit('courses:evolveCourseUploadUpdate', {_step: "2/3", _course: course, _progress: 0});
+            yield unzipFileToDestination(uploadDestinationPath, unzippedDestinationPath, (progress) => {
+                Sockets.io.emit('courses:evolveCourseUploadUpdate', {_step: "2/3", _course: course, _progress: progress});
+            });
+            Sockets.io.emit('courses:evolveCourseUploadUpdate', {_step: "3/3", _course: course, _progress: null});
 
             var manifestDetails = yield getImsManifestDetails(unzippedDestinationPath);
 

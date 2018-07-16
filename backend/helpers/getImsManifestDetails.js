@@ -13,7 +13,7 @@ module.exports = Promise.coroutine(function*(courseFolderPath) {
 
     var parser = new xml2js.Parser();
     var xml2jsAsPromise = Promise.promisify(parser.parseString);
-    var xmlFile = yield readFile(`${courseFolderPath}/imsmanifest.xml`);
+    var xmlFile = yield readFile(`${courseFolderPath}imsmanifest.xml`);
     var xmlAsJs = yield xml2jsAsPromise(xmlFile);
 
     if (xmlAsJs.manifest.metadata[0].schemaversion[0] != '1.2') {
