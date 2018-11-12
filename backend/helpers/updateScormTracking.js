@@ -1,4 +1,5 @@
 var moment = require('moment');
+var _ = require('lodash');
 
 module.exports = function(userId, courseId, trackingModel, shouldUpdateTotalTime) {
     var updateObject = {};
@@ -35,6 +36,9 @@ module.exports = function(userId, courseId, trackingModel, shouldUpdateTotalTime
         updateObject._sessions = [session];
 
     }
+
+    // Set the score
+    updateObject._score = _.get(cmiCore, "score.raw");
 
     if (shouldUpdateTotalTime) {
         // Now update the total time spent for score
