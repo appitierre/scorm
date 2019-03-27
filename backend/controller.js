@@ -14,6 +14,7 @@ var getImsManifestDetails = require('./helpers/getImsManifestDetails');
 var Sockets = require(`${global.app}/sockets`);
 var updateScormTracking = require('./helpers/updateScormTracking');
 var getDefaultScormAttributes = require('./helpers/getDefaultScormAttributes');
+var hub = require(`${global.app}/hub`);
 
 module.exports = {
     uploadCourse: Promise.coroutine(function*(courseFile, courseId, req, callback) {
@@ -169,6 +170,8 @@ module.exports = {
 
             Sockets.io.emit('updateTracking', {_user: req.user});
 
+            hub.emit('trackings:updated', trackingModel, req.user);
+
             return callback(null, {_tracking: trackingModel});
 
         } catch (error) {
@@ -194,6 +197,8 @@ module.exports = {
             var trackingModel = yield Tracking.findOneAndUpdate({_user: userId, _course: courseId}, updatedScormTracking, {new: true});
 
             Sockets.io.emit('updateTracking', {_user: req.user});
+
+            hub.emit('trackings:updated', trackingModel, req.user);
 
             return callback(null, {_tracking: trackingModel});
 
