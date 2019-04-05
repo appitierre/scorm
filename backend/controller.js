@@ -15,6 +15,7 @@ var Sockets = require(`${global.app}/sockets`);
 var updateScormTracking = require('./helpers/updateScormTracking');
 var getDefaultScormAttributes = require('./helpers/getDefaultScormAttributes');
 var hub = require(`${global.app}/hub`);
+var _ = require('lodash');
 
 module.exports = {
     uploadCourse: Promise.coroutine(function*(courseFile, courseId, req, callback) {
@@ -77,8 +78,22 @@ module.exports = {
     courseRouteCallback: Promise.coroutine(function*(req, res, options) {
         var course = yield Course.findById(options.course._id);
         var indexPath = course._courseTypeData.indexPath;
-        
-        return res.sendFile(indexPath, {root: `${global.root}/public/courses/${options.course._id}`});
+
+        var indexPathSplit = indexPath.split('/');
+
+        var redirect = './';
+
+        if (indexPathSplit.length > 1) {
+
+            _.each(indexPathSplit, (indexPathSplitItem, index) => {
+                if (index === indexPathSplit.length - 1) return;
+                redirect = redirect + `${indexPathSplitItem}/`;
+            })
+        }
+
+        redirect += indexPathSplit[indexPathSplit.length - 1];
+
+        return res.redirect(redirect);
 
     }),
 
