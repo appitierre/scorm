@@ -111,6 +111,8 @@ module.exports = {
         
         var courseModel = yield Course.findOne(query);
         
+        courseId = courseModel._id;
+
         if (courseModel._courseType != 'scorm') {
             return;
         }
