@@ -26,25 +26,25 @@ window.API = {
     },
     LMSInitialize: function() {
         if (!this.model._courseData.cmi) return false;
-        return true;
+        return "true";
     },
     LMSFinish: function() {
         axios.post(`../../api/scorm/${this.model._course}/${this.model._user}`, this.model);
-        return true;
+        return "true";
 
     },
     LMSGetValue: function(path) {
-        return _.get(this.model._courseData, path, "");
+        return `${_.get(this.model._courseData, path, "")}`;
     },
     LMSSetValue: function(path, value) {
-        return _.set(this.model._courseData, path, value);
+        return `${_.set(this.model._courseData, path, value)}`;
     },
     LMSCommit: function() {
         axios.put(`../../api/scorm/${this.model._course}/${this.model._user}`, this.model)
         .then((response) => {
             this.model = response.data._tracking;
         })
-        return true;
+        return "true";
     },
     LMSGetLastError: function() {
         return 0;
