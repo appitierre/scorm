@@ -1,40 +1,54 @@
 var moment = require('moment');
 var _ = require('lodash');
+var Promise = require('bluebird');
+var Course = require(`${global.app}/models/course`);
 
-module.exports = function(userId, courseId, trackingModel, shouldUpdateTotalTime) {
+module.exports = Promise.coroutine(function*(userId, courseId, trackingModel, shouldUpdateTotalTime) {
     var updateObject = {};
     
     var currentTime = new Date();
 
     var courseData = trackingModel._courseData;
-    var cmi = courseData.cmi;        
+    var cmi = courseData.cmi;   
 
     var cmiCore = cmi.core;
+
+    var cmiSuspendData = JSON.parse(cmi.suspend_data);
 
     if (!trackingModel._isComplete && (cmiCore.lesson_status === 'passed' || cmiCore.lesson_status === 'completed')) {
         
         updateObject._isComplete = true;
         updateObject._progress = 100;
         updateObject._completedAt = currentTime;
-
+        
         var session = trackingModel._sessions[0];
-
+        
         session._updatedAt = currentTime;
         session._isComplete = true;
         session._progress = 100;
-
+        
         updateObject._sessions = [session];
-
+        
     } else {
-
+        
         updateObject._progress = 50;
         var session = trackingModel._sessions[0];
         
         session._updatedAt = currentTime;
         session._progress = 50;
-
+        
         updateObject._sessions = [session];
+        
+    }
 
+    // Set assessment attributes
+    if (cmiSuspendData._isAssessmentComplete) {
+        updateObject._isAssessmentComplete = cmiSuspendData._isAssessmentComplete;
+        updateObject._isPassed = cmiSuspendData._isPassed;
+        updateObject._assessmentCompletedQuestionsCount = cmiSuspendData._assessmentCompletedQuestionsCount;
+        updateObject._assessmentCorrectQuestionsCount = cmiSuspendData._assessmentCorrectQuestionsCount;
+
+        yield Course.findByIdAndUpdate(courseId, {_hasAssessment: true}, {new: true});
     }
 
     // Set the score
@@ -79,4 +93,4 @@ module.exports = function(userId, courseId, trackingModel, shouldUpdateTotalTime
 
     return updateObject;
     
-}
+})

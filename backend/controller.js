@@ -181,7 +181,7 @@ module.exports = {
                 return callback(null, {_tracking: trackingModel});
             }
 
-            var updatedScormTracking = updateScormTracking(userId, courseId, trackingModel);
+            var updatedScormTracking = yield updateScormTracking(userId, courseId, trackingModel);
 
             var trackingModel = yield Tracking.findOneAndUpdate({_user: userId, _course: courseId}, updatedScormTracking, {new: true});
 

@@ -20,7 +20,7 @@ module.exports = function(user) {
                     raw: ""
                 }
             },
-            suspend_data: "",
+            suspend_data: "{}",
             launch_data: ""
         }
     }
