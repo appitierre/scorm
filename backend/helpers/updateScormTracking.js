@@ -1,7 +1,8 @@
 var moment = require('moment');
 var _ = require('lodash');
+var hub = require(`${global.app}/hub`);
 
-module.exports = function(userId, courseId, trackingModel, shouldUpdateTotalTime) {
+module.exports = function(userId, courseId, trackingModel, shouldUpdateTotalTime, courseModel) {
     var updateObject = {};
     
     var currentTime = new Date();
@@ -22,6 +23,9 @@ module.exports = function(userId, courseId, trackingModel, shouldUpdateTotalTime
         session._updatedAt = currentTime;
         session._isComplete = true;
         session._progress = 100;
+
+        hub.emit('workflows:courses', userId, courseId, 'COURSE_COMPLETED');
+        hub.emit('workflows:trails', userId, courseModel._parents, 'TRAIL_COMPLETED');
 
         updateObject._sessions = [session];
 
