@@ -113,6 +113,11 @@ module.exports = {
         
         courseId = courseModel._id;
 
+        //Handle triggering workflows when trail is started;
+        if (courseModel._parents) {
+            hub.emit('workflows:trails', userId, courseModel._parents, 'TRAIL_STARTED');
+        }
+
         if (courseModel._courseType != 'scorm') {
             return;
         }
@@ -160,6 +165,7 @@ module.exports = {
             }
 
             var trackingModel = yield Tracking.create(trackingData);
+            hub.emit('workflows:courses', req.userId, courseId, 'COURSE_STARTED');
         }
 
         // This is a catch to make sure the model has some sort of cmi default
@@ -181,7 +187,9 @@ module.exports = {
                 return callback(null, {_tracking: trackingModel});
             }
 
-            var updatedScormTracking = updateScormTracking(userId, courseId, trackingModel);
+            var courseModel = yield Course.findById(courseId).lean();
+
+            var updatedScormTracking = updateScormTracking(userId, courseId, trackingModel, false, courseModel);
 
             var trackingModel = yield Tracking.findOneAndUpdate({_user: userId, _course: courseId}, updatedScormTracking, {new: true});
 

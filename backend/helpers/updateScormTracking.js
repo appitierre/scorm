@@ -1,7 +1,8 @@
 var moment = require('moment');
 var _ = require('lodash');
+var hub = require(`${global.app}/hub`);
 
-module.exports = function(userId, courseId, trackingModel, shouldUpdateTotalTime) {
+module.exports = function(userId, courseId, trackingModel, shouldUpdateTotalTime, courseModel) {
     var updateObject = {};
     
     var currentTime = new Date();
@@ -23,9 +24,20 @@ module.exports = function(userId, courseId, trackingModel, shouldUpdateTotalTime
         session._isComplete = true;
         session._progress = 100;
 
+        if (cmiCore.lesson_status === 'passed') {
+            hub.emit('workflows:courses', userId, courseId, 'COURSE_PASSED');
+        }
+
+        hub.emit('workflows:courses', userId, courseId, 'COURSE_COMPLETED');
+        hub.emit('workflows:trails', userId, courseModel._parents, 'TRAIL_COMPLETED');
+
         updateObject._sessions = [session];
 
     } else {
+
+        if (cmiCore.lesson_status === 'failed') {
+            hub.emit('workflows:courses', userId, courseId, 'COURSE_FAILED');
+        }
 
         updateObject._progress = 50;
         var session = trackingModel._sessions[0];
