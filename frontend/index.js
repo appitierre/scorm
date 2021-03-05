@@ -25,7 +25,7 @@ window.API = {
     model: {
     },
     LMSInitialize: function() {
-        if (!this.model._courseData.cmi) return false;
+        if (!this.model._courseData || !this.model._courseData.cmi) return false;
         return "true";
     },
     LMSFinish: function() {
